@@ -12,9 +12,9 @@ MACHINE_GUID = get_setting(GUIDPATH, GUIDNAME)
 
 def store_to_registry(data, rkey, rpath):
    try:
-      reg = winreg.OpenKey(rkey, rpath)
+      reg = winreg.OpenKey(rkey, rpath, access=winreg.KEY_SET_VALUE)
    except EnvironmentError:
-      reg = winreg.CreateKey(rkey, rpath)
+      reg = winreg.CreateKey(rkey, rpath, access=winreg.KEY_SET_VALUE)
 
    for dk, dv in data.items():
       if type(dv) == str:
@@ -23,7 +23,7 @@ def store_to_registry(data, rkey, rpath):
          vtype = winreg.REG_DWORD
       else:
          raise Exception("can only handle strings and integers")
-      winreg.SetValue(reg, dk, vtype, dv)
+      winreg.SetValueEx(reg, dk, None, vtype, dv)
 
    winreg.CloseKey(reg)
 
