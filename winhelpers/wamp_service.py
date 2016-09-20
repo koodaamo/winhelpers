@@ -21,11 +21,11 @@ def logevent(msg, evtid=0xF000):
    servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE, evtid, (msg, ''))
 
 
-class SideKickService(win32serviceutil.ServiceFramework):
+class WAMPService(win32serviceutil.ServiceFramework):
 
-   _svc_name_ = "SideKickService"
-   _svc_display_name_ = "Sidekick Service"
-   _svc_description_ = "Companion 'sidekick' service"
+   _svc_name_ = "WAMPService"
+   _svc_display_name_ = "WAMP Service"
+   _svc_description_ = "Windows service for running a WAMP component"
 
    wmp_url = None
    wmp_realm = None
