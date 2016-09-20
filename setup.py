@@ -3,24 +3,24 @@ import sys, os
 
 version = '1.0'
 
-setup(name='sidekick',
+setup(name='winhelpers',
       version=version,
-      description="On-premises server sidekick",
-      long_description="""\
-""",
-      classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+      description="Helpers for Python on the Windows platform",
+      long_description="",
+      classifiers=[
+         "Operating System :: Microsoft :: Windows",
+         "Environment :: Win32 (MS Windows)",
+         "Programming Language :: Python :: 3.5",
+         "Programming Language :: Python :: 3",
+         "Programming Language :: Python :: 3 :: Only"
+      ],
       keywords='',
       author='Petri Savolainen',
       author_email='petri.savolainen@koodaamo.fi',
       url='',
-      license='Proprietary',
+      license='GPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
       zip_safe=False,
-      install_requires=[
-          # -*- Extra requirements: -*-
-      ],
-      entry_points="""
-      # -*- Entry points: -*-
-      """,
+      install_requires=["pywin32",],
       )

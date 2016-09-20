@@ -14,7 +14,7 @@ from autobahn.wamp.types import ComponentConfig
 from autobahn.websocket.util import parse_url
 from autobahn.asyncio.websocket import WampWebSocketClientFactory
 
-from .util import get_setting
+from .registry import get_setting
 
 def logevent(msg, evtid=0xF000):
    "log into windows event manager"
