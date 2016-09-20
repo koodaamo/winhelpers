@@ -23,7 +23,7 @@ def store_to_registry(data, rkey, rpath):
          vtype = winreg.REG_DWORD
       else:
          raise Exception("can only handle strings and integers")
-      SetValue(reg, dk, vtype, dv)
+      winreg.SetValue(reg, dk, vtype, dv)
 
    winreg.CloseKey(reg)
 
