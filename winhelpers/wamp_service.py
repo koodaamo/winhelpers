@@ -6,7 +6,6 @@ import win32event
 import win32api
 import win32timezone
 import servicemanager
-import win32traceutil
 
 import txaio
 from autobahn.wamp import protocol
