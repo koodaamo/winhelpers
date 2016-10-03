@@ -12,9 +12,9 @@ MACHINE_GUID = get_setting(GUIDPATH, GUIDNAME)
 
 def store_to_registry(data, rkey, rpath):
    try:
-      reg = winreg.OpenKey(rkey, rpath, access=winreg.KEY_SET_VALUE)
+      reg = winreg.OpenKey(rkey, rpath)
    except EnvironmentError:
-      reg = winreg.CreateKey(rkey, rpath, access=winreg.KEY_SET_VALUE)
+      reg = winreg.CreateKey(rkey, rpath)
 
    for dk, dv in data.items():
       if type(dv) == str:
