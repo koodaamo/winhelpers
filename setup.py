@@ -27,5 +27,5 @@ setup(name='winhelpers',
       install_requires=["pypiwin32",],
       entry_points={
           "console_scripts": ['winhelper = winhelpers.command:winhelper'],
-      },
+      }
       )
