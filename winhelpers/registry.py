@@ -4,11 +4,18 @@ KEY = winreg.HKEY_LOCAL_MACHINE
 GUIDPATH = u"SOFTWARE\Microsoft\Cryptography"
 GUIDNAME = u"MachineGuid"
 
-def get_setting(rpath, name):
+def get_registry_setting(rpath, name):
    reg = winreg.OpenKey(KEY, rpath)
    return winreg.QueryValueEx(reg, name)
 
-MACHINE_GUID = get_setting(GUIDPATH, GUIDNAME)
+def get_registry_settings(rpath):
+   reg = winreg.OpenKey(KEY, rpath)
+   count = winreg.QueryInfoKey(reg)[1]
+   settings = {}
+   for i in range(count):
+      (name, value, _) = winreg.EnumValue(reg, i)
+      settings[name] = value
+   return settings
 
 def store_to_registry(data, rkey, rpath):
    try:
@@ -27,3 +34,5 @@ def store_to_registry(data, rkey, rpath):
 
    winreg.CloseKey(reg)
 
+
+MACHINE_GUID = get_registry_setting(GUIDPATH, GUIDNAME)
