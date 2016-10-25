@@ -9,11 +9,6 @@ class BaseAsyncioService(BaseService):
    _svc_display_name_ = "Base asyncio service helper"
    _svc_description_ = "A subclassable service for running an asyncio loop"
 
-   AUTO_PING_INTERVAL = 10
-   AUTO_PING_TIMEOUT = 27
-   AUTORECONNECT = True
-   TRANSPORT_PROTOCOL = DummyTransportProtocol
-
    def _exception_handler(self, loop, data):
       LogErrorMsg("%s: exception: %s" % (self._svc_name_, str(data)))
 
@@ -47,6 +42,7 @@ class BaseAsyncioService(BaseService):
       loop.stop()
       loop.close()
 
+
    def setup_asyncio_app(self):
       "override (loop will be started automatically after this)"
       pass
@@ -54,3 +50,21 @@ class BaseAsyncioService(BaseService):
    def teardown_asyncio_app(self):
       "override (loop will be stopped automatically after this)"
       pass
+
+
+class BaseAsyncioTransportService(BaseAsyncioService):
+   "asyncio service that connects a transport"
+
+
+   def _transport_connector(self):
+      "return the transport connector coroutine"
+      raise NotImplementedError()
+
+   def _connect_transport(self):
+      "run the transport connector"
+      (transport, proto) = self._loop.run_until_complete(self._transport_connector())
+      self._transport, self._protocol = transport, proto
+
+   def setup_asyncio_app(self):
+      "override (loop will be started automatically after this)"
+      self._connect_transport()

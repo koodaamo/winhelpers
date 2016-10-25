@@ -1,10 +1,13 @@
-import sys, time
+import sys, time, os, asyncio
 from pytest import fixture, raises
 import win32service, win32serviceutil, pywintypes, servicemanager
-from winhelpers.service import BaseService, BaseAsyncioService, DummyWAMPService
+from winhelpers.service.testing import *
 
-tested_services = (BaseService, BaseAsyncioService, DummyWAMPService)
 
+tested_services = (DummyService, DummyAsyncioService, DummyAsyncioTransportService, DummyWAMPService)
+
+
+# FIXTURES
 
 @fixture(scope="module", params=tested_services)
 def service(request):
@@ -31,6 +34,8 @@ def installed(request):
    sys.argv = sys.argv[:1] + ["remove"]
    win32serviceutil.HandleCommandLine(srv_klass)
 
+
+# TESTS
 
 def test_01_install_remove(service):
    sys.argv = sys.argv[:1] + ["install"]

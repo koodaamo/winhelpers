@@ -50,3 +50,9 @@ class BaseService(win32serviceutil.ServiceFramework):
       self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
       win32event.SetEvent(self._stop_event)
 
+
+class DummyService(BaseService):
+   ""
+   _svc_name_ = "DummyService"
+   _svc_display_name_ = "Dummy test service"
+   _svc_description_ = "Dummy service used in winhelpers testing"

@@ -3,11 +3,11 @@ from autobahn.websocket.util import parse_url
 from autobahn.asyncio.websocket import WampWebSocketClientFactory
 from autobahn.asyncio.wamp import ApplicationSession
 
-from .asyncio import BaseAsyncioService
+from .async import BaseAsyncioService
 
 
-class WAMPComponentService(BaseAsyncioService):
-   "base windows service for running a WAMP component"
+class BaseWAMPComponentService(BaseAsyncioService):
+   "base windows service for running a WAMP component that connects to a router"
 
    _svc_name_ = "BaseWAMPService"
    _svc_display_name_ = "Base WAMP service helper"
@@ -88,22 +88,3 @@ class WAMPComponentService(BaseAsyncioService):
       LogInfoMsg("%s asyncio teardown complete" % self._svc_name_)
 
 
-# For testing purposes
-
-class DummyWAMPComponent(ApplicationSession):
-
-   async def onJoin(self, details):
-      servicemanager.LogInfoMsg("%s: connection made" % self.__class__.__name__)
-
-
-# For testing purposes
-
-class DummyWAMPService(WAMPComponentService):
-
-   _svc_name_ = "DummyWAMPTestService"
-   _svc_display_name_ = "Dummy WAMP test service"
-   _svc_description_ = "Dummy WAMP service used in winhelpers testing"
-
-   wmp_url = "ws://10.211.55.4:8080/ws"
-   wmp_realm = "realm1"
-   wmp_sessioncomponent = DummyWAMPComponent
