@@ -18,7 +18,7 @@ class BaseAsyncioService(BaseService):
    def main(self):
       "loop until stopped"
 
-      self.loop = loop = asyncio.get_event_loop()
+      self._loop = loop = asyncio.get_event_loop()
       loop.set_exception_handler(self._exception_handler)
 
       # let the app prepare itself
@@ -64,8 +64,12 @@ class BaseAsyncioTransportService(BaseAsyncioService):
 
    def _connect_transport(self):
       "run the transport connector"
-      (transport, proto) = self._loop.run_until_complete(self._transport_connector())
-      self._transport, self._protocol = transport, proto
+      try:
+         (transport, proto) = self._loop.run_until_complete(self._transport_connector())
+      except Exception as exc:
+         LogErrorMsg("%s cannot setup transport connector: %s" % (self._svc_name_, str(exc)))
+      else:
+         self._transport, self._protocol = transport, proto
 
    def setup_asyncio_app(self):
       "override (loop will be started automatically after this)"
