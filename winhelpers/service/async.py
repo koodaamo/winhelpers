@@ -1,5 +1,7 @@
 import asyncio
 from .base import BaseService
+import win32event
+from servicemanager import LogMsg, LogErrorMsg, LogInfoMsg, LogWarningMsg
 
 
 class BaseAsyncioService(BaseService):
