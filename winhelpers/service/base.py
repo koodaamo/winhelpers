@@ -40,8 +40,9 @@ class BaseService(win32serviceutil.ServiceFramework):
       self.main()
 
       # log stop to event log and report to service controller
-      self.ReportServiceStatus(win32service.SERVICE_STOPPED)
       self.log_evt(servicemanager.PYS_SERVICE_STOPPED)
+      self.ReportServiceStatus(win32service.SERVICE_STOPPED)
+      return
 
 
    def SvcStop(self):
