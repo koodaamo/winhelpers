@@ -3,10 +3,10 @@ from autobahn.websocket.util import parse_url
 from autobahn.asyncio.websocket import WampWebSocketClientFactory
 from autobahn.asyncio.wamp import ApplicationSession
 
-from .async import BaseAsyncioService
+from .async import BaseAsyncioTransportService
 
 
-class BaseWAMPComponentService(BaseAsyncioService):
+class BaseWAMPComponentService(BaseAsyncioTransportService):
    "base windows service for running a WAMP component that connects to a router"
 
    _svc_name_ = "BaseWAMPService"
@@ -52,8 +52,7 @@ class BaseWAMPComponentService(BaseAsyncioService):
          return session
 
 
-   def setup_asyncio_app(self):
-      "establish the transport"
+   def _transport_connector(self):
 
       try:
          isSecureURL, host, port, resource, path, params = parse_url(self.wmp_url)
@@ -61,7 +60,7 @@ class BaseWAMPComponentService(BaseAsyncioService):
          raise Exception("could not parse WAMP router url '%s'" % self.wmp_url)
 
       try:
-         make_transport = WampWebSocketClientFactory(self._component, url=self.wmp_url, serializers=self.wmp_serializers)
+         factory = WampWebSocketClientFactory(self._component, url=self.wmp_url, serializers=self.wmp_serializers)
       except Exception as exc:
          raise Exception("could not build transport factory:" % str(exc))
 
@@ -71,20 +70,8 @@ class BaseWAMPComponentService(BaseAsyncioService):
          raise Exception("ssl config parsing failed: %s" % str(exc))
 
       try:
-         transport_coro = self.loop.create_connection(make_transport, host, port, ssl=ssl)
+         return self._loop.create_connection(factory, host, port, ssl=ssl)
       except:
          raise Exception("cannot instantiate transport coroutine: %s" % str(exc))
-
-      try:
-         (transport, self._protocol) = self.loop.run_until_complete(transport_coro)
-      except Exception as exc:
-         raise Exception("connection to router failed, is remote server up?")
-
-      LogInfoMsg("%s asyncio setup complete" % self._svc_name_)
-
-
-   def teardown_asyncio_app(self):
-      ""
-      LogInfoMsg("%s asyncio teardown complete" % self._svc_name_)
 
 
