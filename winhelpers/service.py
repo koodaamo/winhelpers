@@ -57,6 +57,9 @@ class WindowsServiceBase(win32serviceutil.ServiceFramework):
       win32serviceutil.ServiceFramework.__init__(self, *args)
       self._stop_event = win32event.CreateEvent(None, 0, 0, None)
 
+   def start(self):
+      raise NotImplementedError()
+
    def SvcDoRun(self):
       "service controller is telling us to start"
       self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
@@ -75,20 +78,5 @@ class WindowsServiceBase(win32serviceutil.ServiceFramework):
       win32event.SetEvent(self._stop_event)
       self.ReportServiceStatus(SERVICE_STOPPED)
 
-
-# Creator metaclass
-
-class WindowsServiceCreator(type):
-
-   def configure_service_class(cls, name, parents, dct):
-      parents = list(parents)
-      #parents.append(WindowsServiceBase)
-      dct = set_service_metadata(name, dct)
-      dct = set_logger(name, dct)
-      return (cls, name, tuple(parents), dct)
-
-   def __new__(*args):
-      args  = WindowsServiceCreator.configure_service_class(*args)
-      return type.__new__(*args)
 
 
