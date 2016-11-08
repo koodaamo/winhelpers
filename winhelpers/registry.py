@@ -1,12 +1,15 @@
 import winreg
 
+
 KEY = winreg.HKEY_LOCAL_MACHINE
 GUIDPATH = u"SOFTWARE\Microsoft\Cryptography"
 GUIDNAME = u"MachineGuid"
 
+
 def get_registry_setting(rpath, name):
    reg = winreg.OpenKey(KEY, rpath)
    return winreg.QueryValueEx(reg, name)
+
 
 def get_registry_settings(rpath):
    reg = winreg.OpenKey(KEY, rpath)
@@ -16,6 +19,7 @@ def get_registry_settings(rpath):
       (name, value, _) = winreg.EnumValue(reg, i)
       settings[name] = value
    return settings
+
 
 def store_to_registry(data, rkey, rpath):
    try:
