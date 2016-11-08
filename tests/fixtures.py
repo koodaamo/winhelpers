@@ -2,7 +2,12 @@ import sys
 import win32serviceutil, win32service
 from pytest import fixture
 
-from . import tested_services
+from .services import MinimalReferenceService, BasicWindowsAsyncioService, \
+                      WindowsAsyncioService, WindowsWAMPService
+
+tested_services = (MinimalReferenceService, BasicWindowsAsyncioService, \
+                   WindowsAsyncioService, WindowsWAMPService)
+
 
 
 @fixture(scope="module", params=tested_services)
