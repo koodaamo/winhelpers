@@ -23,8 +23,8 @@ setup(name='winhelpers',
       include_package_data=True,
       zip_safe=False,
       setup_requires=['pytest-runner',],
-      tests_require=['pytest',],
-      install_requires=["pypiwin32",],
+      tests_require=['pytest', 'pytest-logging', 'pytest-asyncio'],
+      install_requires=["pypiwin32"],
       entry_points={
           "console_scripts": ['winhelper = winhelpers.command:winhelper'],
       }

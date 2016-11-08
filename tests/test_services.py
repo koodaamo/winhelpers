@@ -1,41 +1,10 @@
-import sys, time, os, asyncio
-from pytest import fixture, raises
-import win32service, win32serviceutil, pywintypes, servicemanager
-from winhelpers.service.testing import *
+import sys, time, asyncio, logging, signal, multiprocessing, inspect
+from pytest import raises, mark
 
+import win32service, win32serviceutil, servicemanager, pywintypes
 
-tested_services = (DummyService, DummyAsyncioService, DummyAsyncioTransportService, DummyWAMPService)
+from .fixtures import service, installed
 
-
-# FIXTURES
-
-@fixture(scope="module", params=tested_services)
-def service(request):
-   yield request.param
-   return
-
-
-@fixture(scope="module", params=tested_services)
-def installed(request):
-   srv_klass = request.param
-   sys.argv = sys.argv[:1] + ["install"]
-   win32serviceutil.HandleCommandLine(srv_klass)
-   while True:
-      try:
-         status_code = win32serviceutil.QueryServiceStatus(srv_klass._svc_name_)[1]
-         break
-      except:
-         pass
-   yield srv_klass
-   while True:
-      status_code = win32serviceutil.QueryServiceStatus(srv_klass._svc_name_)[1]
-      if status_code == win32service.SERVICE_STOPPED:
-         break
-   sys.argv = sys.argv[:1] + ["remove"]
-   win32serviceutil.HandleCommandLine(srv_klass)
-
-
-# TESTS
 
 def test_01_install_remove(service):
    sys.argv = sys.argv[:1] + ["install"]
@@ -64,3 +33,4 @@ def test_02_start_stop(installed):
 
    sys.argv = sys.argv[:1] + ["stop"]
    win32serviceutil.HandleCommandLine(installed)
+
