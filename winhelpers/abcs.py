@@ -17,7 +17,7 @@ class WindowsServiceMetadata(metaclass=ABCMeta):
       "required from a Python Windows service class"
 
 
-class ControlledService(metaclass=ABCMeta):
+class ControlledWindowsService(metaclass=ABCMeta):
    "Windows service control API"
 
    @abstractmethod
@@ -29,3 +29,5 @@ class ControlledService(metaclass=ABCMeta):
       "called by Windows service manager to stop the service"
 
 
+class WindowsServiceABC(WindowsServiceMetadata, ControlledWindowsService):
+   ""
