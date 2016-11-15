@@ -1,21 +1,9 @@
-import sys
+import sys, logging
 import win32serviceutil, win32service
 from pytest import fixture
 
-from .services import MinimalReferenceService, BasicWindowsAsyncioService, \
-                      WindowsAsyncioService, WindowsWAMPService
 
-tested_services = (MinimalReferenceService, BasicWindowsAsyncioService, \
-                   WindowsAsyncioService, WindowsWAMPService)
-
-
-
-@fixture(scope="module", params=tested_services)
-def service(request):
-   yield request.param
-   return
-
-
+"""
 @fixture(scope="function", params=tested_services)
 def installed(request):
    srv_klass = request.param
@@ -34,3 +22,4 @@ def installed(request):
          break
    sys.argv = sys.argv[:1] + ["remove"]
    win32serviceutil.HandleCommandLine(srv_klass)
+"""
