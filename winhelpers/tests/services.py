@@ -2,162 +2,95 @@
  Example services
 """
 
-import os, asyncio
-
-import win32service
-import win32serviceutil
-import win32event
-import servicemanager
-
-from autobahn.asyncio.wamp import ApplicationSession
+import os, sys, asyncio, logging
 
 from asynciohelpers.service import AsyncioServiceBase
+from asynciohelpers.service import AsyncioConnectingServiceBase
 from asynciohelpers.service import AsyncioReConnectingServiceBase
-from asynciohelpers.wamp import WAMPServiceMixin, WAMPConfigAdapter
+from asynciohelpers.wamp import WAMPServiceMixin
+from asynciohelpers.testing import TransportClientProtocol
+from asynciohelpers.util import wamp_configured, wamp_env_configured, env_configured
+from autobahn.asyncio.wamp import ApplicationSession
 
-from winhelpers.abcs import WindowsServiceMetadata, ControlledService
-from winhelpers.service import WindowsServiceBase, WindowsServiceCreator, get_windows_logger, WindowsMetadataAdapter
-
-
-def logevent(msg, evtid=0xF000):
-   "log into windows event manager"
-   servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE, evtid, (msg, ''))
-
-
-# Basic dummy service for reference; note that the servicemanager apparently runs the
-# service in a separate thread yet calls the functions in main, so don't count on
-# execution being intuitive...
-
-class Service(win32serviceutil.ServiceFramework):
-
-   _svc_name_ = "TestService"
-   _svc_display_name_ = "Test Service"
-   _svc_description_ = "This is a bare-bones windows service for testing."
-
-   def __init__(self,args):
-      win32serviceutil.ServiceFramework.__init__(self, args)
-      self.ReportServiceStatus(win32service.SERVICE_START_PENDING, waitHint=60000)
-      logevent(self._svc_display_name_, servicemanager.PYS_SERVICE_STARTING)
-      self.stop_event = win32event.CreateEvent(None, 0, 0, None)
-
-   def SvcStop(self):
-      self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-      win32event.SetEvent(self.stop_event)
-
-   def SvcDoRun(self):
-      logevent(self._svc_display_name_, servicemanager.PYS_SERVICE_STARTED)
-      self.ReportServiceStatus(win32service.SERVICE_RUNNING)
-      win32event.WaitForSingleObject(self.stop_event, win32event.INFINITE)
-      self.ReportServiceStatus(win32service.SERVICE_STOPPED)
+from ..util import servicemetadataprovider, eventloggerprovider
+from ..service import WindowsServiceBase
+from . import WAMP_ROUTER_URL, WAMP_ROUTER_REALM, WAMP_ROUTER_SSL, TEST_HOST, TEST_PORT
 
 
-
-class MinimalReferenceService(win32serviceutil.ServiceFramework):
-   "Raw minimum standalone dummy service example, for reference and comparison"
-
-   _svc_name_ = "MinimalReferenceService"
-   _svc_display_name_ = "Minimal reference service"
-   _svc_description_ = "This is a minimal windows reference service."
-
-   def __init__(self, args):
-      win32serviceutil.ServiceFramework.__init__(self, args)
-      self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
-      #logevent(self._svc_display_name_, servicemanager.PYS_SERVICE_STARTING)
-      self._stop_event = win32event.CreateEvent(None, 0, 0, None)
-      servicemanager.LogInfoMsg("initialized %s" % self._svc_name_)
-
-
-   def SvcStop(self):
-      servicemanager.LogInfoMsg("stop requested of %s" % self._svc_name_)
-      self.ReportServiceStatus(SERVICE_STOP_PENDING)
-      win32event.SetEvent(self._stop_event)
-
-   def SvcDoRun(self):
-      #logevent(self._svc_display_name_, servicemanager.PYS_SERVICE_STARTED)
-      servicemanager.LogInfoMsg("running %s" % self._svc_name_)
-      self.ReportServiceStatus(SERVICE_RUNNING)
-      servicemanager.LogInfoMsg("now starting to wait in %s" % self._svc_name_)
-      win32event.WaitForSingleObject(self._stop_event, win32event.INFINITE)
-      self.ReportServiceStatus(SERVICE_STOPPED)
-      servicemanager.LogInfoMsg("%s stopped" % self._svc_name_)
+@eventloggerprovider
+@servicemetadataprovider
+class BasicWindowsService(WindowsServiceBase):
+   "service that does basically nothing"
 
 
 #
 # Asyncio examples
 #
 
-
-class BasicWindowsAsyncioService(WindowsServiceBase, AsyncioServiceBase, metaclass=WindowsServiceCreator):
+@eventloggerprovider
+@servicemetadataprovider
+class BasicWindowsAsyncioService(WindowsServiceBase, AsyncioServiceBase):
    "service that does basically nothing but runs the loop"
 
-   #_svc_name_ = "BasicAsyncioService"
-   #_svc_display_name_ = "Basic Asyncio service"
-   #_svc_description_ = "This is a Basic Asyncio service."
 
-
+@eventloggerprovider
 class TransportProtocol(asyncio.Protocol):
 
-   @property
-   def logger(self):
-      try:
-         return self._logger
-      except:
-         self._logger = get_windows_logger(name=self.__class__.__name__)
-         return self._logger
-
    def connection_made(self, transport):
-      self.logger.debug("connection made")
+      self._logger.debug("connection made")
 
    def connection_lost(self, exc):
-      self.logger.debug("connection lost")
+      self._logger.debug("connection lost")
 
 
-
-class ReConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingServiceBase, metaclass=WindowsServiceCreator):
+@eventloggerprovider
+@servicemetadataprovider
+class ConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioConnectingServiceBase):
    "service that connects a transport, reconnecting as necessary"
 
    _transport_factory = TransportProtocol
 
 
-class WindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingServiceBase, metaclass=WindowsServiceCreator):
-   """
-   def _transport_connector(self):
-      "return the transport connector coroutine"
-      HOST = os.environ.get("TEST_HOST")
-      PORT = os.environ.get("TEST_PORT")
-      assert (HOST and PORT), "TEST_HOST or TEST_PORT variable not in environment: %s" % ', '.join(os.environ.keys())
-      connector = self._loop.create_connection(DummyTransportProtocol, host=HOST, port=PORT)
-      self.logger.debug("created transport connector: %s" %  str(connector))
-      return connector
-   """
 
+@eventloggerprovider
+@servicemetadataprovider
+class ReConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingServiceBase):
+   "service that connects a transport, reconnecting as necessary"
+
+   _transport_factory = TransportProtocol
+
+
+@eventloggerprovider
+@env_configured
+@servicemetadataprovider
+class EnvConfiguredReConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingServiceBase):
+   "environment-configured service that connects a transport, reconnecting as necessary"
 
 #
 # WAMP example services
 #
 
+
+@eventloggerprovider
 class WAMPComponent(ApplicationSession):
    ""
 
-   @property
-   def logger(self):
-      try:
-         return self._logger
-      except:
-         self._logger = get_windows_logger(name=self.__class__.__name__)
-         return self._logger
-
    def onJoin(self, details):
-      self.logger.debug("joined realm")
+      self._transport._session_joined.set_result(True)
+      self._logger.debug("joined realm")
 
 
-class WindowsWAMPService(WindowsServiceBase, WAMPServiceMixin, WAMPConfigAdapter, WindowsMetadataAdapter):
+@eventloggerprovider
+@servicemetadataprovider
+@wamp_configured
+@wamp_env_configured
+class WindowsWAMPService(WindowsServiceBase, WAMPServiceMixin, AsyncioReConnectingServiceBase):
 
-   @property
-   def wmp_url(self):
-      url = os.environ.get("WAMP_ROUTER_URL")
-      self.logger.debug("using ws URL '%s'" % url)
-      return url
+   wmp_url = WAMP_ROUTER_URL
+   wmp_realm = WAMP_ROUTER_REALM
+   wmp_ssl = WAMP_ROUTER_SSL
+   wmp_extra = None
+   wmp_serializers = None
 
-   wmp_realm = "realm1"
    wmp_sessioncomponent = WAMPComponent
+
