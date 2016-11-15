@@ -2,23 +2,10 @@ import sys, re, logging
 from logging.handlers import NTEventLogHandler
 
 
-# Windows logger factory
-
-def get_windows_logger(name="Python Windows service", level=logging.INFO):
-   logger = logging.getLogger(name)
-   logger.setLevel(level)
-   logger.addHandler(NTEventLogHandler(name))
-   return logger
-
-
 # Windows servicemanager eats exceptions, so need some extra logging magic...
 
-exception_logger = get_windows_logger(name="Python exceptions", level=logging.DEBUG)
-
-def log_exception(exctype, value, tb):
+def log_exception(exception_logger, exctype, value, tb):
    exception_logger.error("%s (%s): %s" % (exctype, value, tb))
-
-sys.excepthook = log_exception
 
 
 # Utilities for service creation
@@ -32,6 +19,14 @@ def ccc(name): # Camel Case Converter
    return re.sub('([a-z0-9])([A-Z])', r'\1 \2', s1)
 
 
+def set_service_metadata(name, dct):
+   dct["_svc_name_"] = name
+   nname = ccc(name) # normalized
+   dct["_svc_display_name_"] = nname + " service base"
+   dct["_svc_description_"] =   "A subclassable " + nname + " service base"
+   return dct
+
+
 def servicemetadataprovider(cls):
    "class decorator for setting the metadata"
    name = cls.__name__
@@ -39,4 +34,18 @@ def servicemetadataprovider(cls):
    nname = ccc(name) # normalized
    cls._svc_display_name_ = nname + " service base"
    cls._svc_description_ =   "A subclassable " + nname + " service base"
+   return cls
+
+
+def eventloggerprovider(cls):
+   "create new logger using class name"
+
+   logger = logging.getLogger(cls.__name__)
+   level = getattr(cls, "LOGLEVEL", logging.DEBUG)
+   logger.setLevel(level)
+
+   if sys.platform == "win32":
+      logger.addHandler(NTEventLogHandler(cls.__name__))
+
+   cls._logger = logger
    return cls
