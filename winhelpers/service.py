@@ -1,4 +1,4 @@
-import sys, logging, re
+import sys, logging, re, threading
 from logging.handlers import NTEventLogHandler
 import win32serviceutil
 import win32event
@@ -12,71 +12,61 @@ from win32service import SERVICE_START_PENDING, \
                          SERVICE_STOPPED
 
 
-# Windows logger factory
-
-def get_windows_logger(name="Python Windows service", level=logging.INFO):
-   logger = logging.getLogger(name)
-   logger.setLevel(level)
-   logger.addHandler(NTEventLogHandler(name))
-   return logger
+from .util import servicemetadataprovider, eventloggerprovider
 
 
-# Windows servicemanager eats exceptions, so need some extra logging magic...
+# Basic dummy service for reference; note that the servicemanager apparently runs the
+# service in a separate thread yet calls the functions in main, so don't count on
+# execution being intuitive...
 
-exception_logger = get_windows_logger(name="Python exceptions", level=logging.DEBUG)
+@eventloggerprovider
+@servicemetadataprovider
+class MinimalService(win32serviceutil.ServiceFramework):
 
-def log_exception(exctype, value, tb):
-   exception_logger.error("%s (%s): %s" % (exctype, value, tb))
+   def __init__(self,args):
+      win32serviceutil.ServiceFramework.__init__(self, args)
+      self.ReportServiceStatus(win32service.SERVICE_START_PENDING, waitHint=60000)
+      self.stop_event = win32event.CreateEvent(None, 0, 0, None)
 
-sys.excepthook = log_exception
+   def SvcStop(self):
+      self._logger.info("stopping")
+      self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+      win32event.SetEvent(self.stop_event)
 
-
-# Utilities for service creation
-
-def set_logger(name, dct):
-   dct["logger"] = get_windows_logger(name=name)
-   return dct
-
-def ccc(name): # Camel Case Converter
-   s1 = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', name)
-   return re.sub('([a-z0-9])([A-Z])', r'\1 \2', s1)
-
-def set_service_metadata(name, dct):
-   dct["_svc_name_"] = name
-   nname = ccc(name) # normalized
-   dct["_svc_display_name_"] = nname + " service base"
-   dct["_svc_description_"] =   "A subclassable " + nname + " service base"
-   return dct
+   def SvcDoRun(self):
+      self._logger.info("starting")
+      self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+      win32event.WaitForSingleObject(self.stop_event, win32event.INFINITE)
+      self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
 
 # Service base class
 
 class WindowsServiceBase(win32serviceutil.ServiceFramework):
 
-   def __init__(self, *args):
-      win32serviceutil.ServiceFramework.__init__(self, *args)
+   def __init__(self, args):
+      win32serviceutil.ServiceFramework.__init__(self, args)
       self._stop_event = win32event.CreateEvent(None, 0, 0, None)
 
    def start(self):
-      raise NotImplementedError()
+      servicemanager.LogWarningMsg("the start method should be overriden")
+      win32event.WaitForSingleObject(self._stop_event, win32event.INFINITE)
+      self.stop()
+
+   def stop(self):
+      servicemanager.LogWarningMsg("the stop method should be overriden")
+      self.ReportServiceStatus(SERVICE_STOPPED)
 
    def SvcDoRun(self):
       "service controller is telling us to start"
       self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
       self.ReportServiceStatus(SERVICE_RUNNING)
-      self._start_waiter()
       self.start()
-      return
-
-   def _start_waiter(self):
-      "listen for service end request, blocking until receiving request, then call stop"
-      win32event.WaitForSingleObject(self._stop_event, win32event.INFINITE)
 
    def SvcStop(self):
       "the service controller is telling us to shut down"
       self.ReportServiceStatus(SERVICE_STOP_PENDING)
       win32event.SetEvent(self._stop_event)
-      self.ReportServiceStatus(SERVICE_STOPPED)
 
 
 
