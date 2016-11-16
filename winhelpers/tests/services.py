@@ -29,7 +29,7 @@ class BasicWindowsService(WindowsServiceBase):
 
 @eventloggerprovider
 @servicemetadataprovider
-class BasicWindowsAsyncioService(WindowsServiceBase, AsyncioServiceBase):
+class BasicWindowsAsyncioService(AsyncioServiceBase, WindowsServiceBase):
    "service that does basically nothing but runs the loop"
 
 
@@ -45,7 +45,7 @@ class TransportProtocol(asyncio.Protocol):
 
 @eventloggerprovider
 @servicemetadataprovider
-class ConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioConnectingServiceBase):
+class ConnectingWindowsAsyncioService(AsyncioConnectingServiceBase, WindowsServiceBase):
    "service that connects a transport, reconnecting as necessary"
 
    _transport_factory = TransportProtocol
@@ -54,7 +54,7 @@ class ConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioConnectingServi
 
 @eventloggerprovider
 @servicemetadataprovider
-class ReConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingServiceBase):
+class ReConnectingWindowsAsyncioService(AsyncioReConnectingServiceBase, WindowsServiceBase):
    "service that connects a transport, reconnecting as necessary"
 
    _transport_factory = TransportProtocol
@@ -63,7 +63,7 @@ class ReConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingS
 @eventloggerprovider
 @env_configured
 @servicemetadataprovider
-class EnvConfiguredReConnectingWindowsAsyncioService(WindowsServiceBase, AsyncioReConnectingServiceBase):
+class EnvConfiguredReConnectingWindowsAsyncioService(AsyncioReConnectingServiceBase, WindowsServiceBase):
    "environment-configured service that connects a transport, reconnecting as necessary"
 
 #
@@ -84,7 +84,7 @@ class WAMPComponent(ApplicationSession):
 @servicemetadataprovider
 @wamp_configured
 @wamp_env_configured
-class WindowsWAMPService(WindowsServiceBase, WAMPServiceMixin, AsyncioReConnectingServiceBase):
+class WindowsWAMPService(WAMPServiceMixin, AsyncioReConnectingServiceBase, WindowsServiceBase):
 
    wmp_url = WAMP_ROUTER_URL
    wmp_realm = WAMP_ROUTER_REALM

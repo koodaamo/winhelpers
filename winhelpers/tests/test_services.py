@@ -32,7 +32,7 @@ def servicefactory(request):
    klass = request.param
    bases = list(klass.__bases__)
    if WindowsServiceBase not in bases:
-      bases.insert(0, WindowsServiceBase)
+      bases.append(0, WindowsServiceBase)
       klass.__bases__ = tuple(bases)
    yield klass
    return
