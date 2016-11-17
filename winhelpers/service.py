@@ -26,17 +26,17 @@ class MinimalService(win32serviceutil.ServiceFramework):
    def __init__(self,args):
       win32serviceutil.ServiceFramework.__init__(self, args)
       self.ReportServiceStatus(win32service.SERVICE_START_PENDING, waitHint=60000)
-      self.stop_event = win32event.CreateEvent(None, 0, 0, None)
+      self._stop_event = win32event.CreateEvent(None, 0, 0, None)
 
    def SvcStop(self):
       self._logger.info("stopping")
       self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-      win32event.SetEvent(self.stop_event)
+      win32event.SetEvent(self._stop_event)
 
    def SvcDoRun(self):
       self._logger.info("starting")
       self.ReportServiceStatus(win32service.SERVICE_RUNNING)
-      win32event.WaitForSingleObject(self.stop_event, win32event.INFINITE)
+      win32event.WaitForSingleObject(self._stop_event, win32event.INFINITE)
       self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
 

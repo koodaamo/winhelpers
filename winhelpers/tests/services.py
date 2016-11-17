@@ -4,9 +4,9 @@
 
 import os, sys, asyncio, logging
 
-from asynciohelpers.service import AsyncioServiceBase
-from asynciohelpers.service import AsyncioConnectingServiceBase
-from asynciohelpers.service import AsyncioReConnectingServiceBase
+from asynciohelpers.service import AsyncioBase
+from asynciohelpers.service import AsyncioConnecting
+from asynciohelpers.service import AsyncioReConnecting
 from asynciohelpers.wamp import WAMPServiceMixin
 from asynciohelpers.testing import TransportClientProtocol
 from asynciohelpers.util import wamp_configured, wamp_env_configured, env_configured
@@ -29,7 +29,7 @@ class BasicWindowsService(WindowsServiceBase):
 
 @eventloggerprovider
 @servicemetadataprovider
-class BasicWindowsAsyncioService(AsyncioServiceBase, WindowsServiceBase):
+class BasicWindowsAsyncioService(AsyncioBase, WindowsServiceBase):
    "service that does basically nothing but runs the loop"
 
 
@@ -45,7 +45,7 @@ class TransportProtocol(asyncio.Protocol):
 
 @eventloggerprovider
 @servicemetadataprovider
-class ConnectingWindowsAsyncioService(AsyncioConnectingServiceBase, WindowsServiceBase):
+class ConnectingWindowsAsyncioService(AsyncioConnecting, WindowsServiceBase):
    "service that connects a transport, reconnecting as necessary"
 
    _transport_factory = TransportProtocol
@@ -54,7 +54,7 @@ class ConnectingWindowsAsyncioService(AsyncioConnectingServiceBase, WindowsServi
 
 @eventloggerprovider
 @servicemetadataprovider
-class ReConnectingWindowsAsyncioService(AsyncioReConnectingServiceBase, WindowsServiceBase):
+class ReConnectingWindowsAsyncioService(AsyncioReConnecting, WindowsServiceBase):
    "service that connects a transport, reconnecting as necessary"
 
    _transport_factory = TransportProtocol
@@ -63,7 +63,7 @@ class ReConnectingWindowsAsyncioService(AsyncioReConnectingServiceBase, WindowsS
 @eventloggerprovider
 @env_configured
 @servicemetadataprovider
-class EnvConfiguredReConnectingWindowsAsyncioService(AsyncioReConnectingServiceBase, WindowsServiceBase):
+class EnvConfiguredReConnectingWindowsAsyncioService(AsyncioReConnecting, WindowsServiceBase):
    "environment-configured service that connects a transport, reconnecting as necessary"
 
 #
@@ -84,7 +84,7 @@ class WAMPComponent(ApplicationSession):
 @servicemetadataprovider
 @wamp_configured
 @wamp_env_configured
-class WindowsWAMPService(WAMPServiceMixin, AsyncioReConnectingServiceBase, WindowsServiceBase):
+class WindowsWAMPService(WAMPServiceMixin, AsyncioReConnecting, WindowsServiceBase):
 
    wmp_url = WAMP_ROUTER_URL
    wmp_realm = WAMP_ROUTER_REALM
