@@ -60,7 +60,6 @@ class WindowsServiceBase(win32serviceutil.ServiceFramework):
    def SvcDoRun(self):
       "service controller is telling us to start"
       self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
-      self.ReportServiceStatus(SERVICE_RUNNING)
       self.start()
 
    def SvcStop(self):
