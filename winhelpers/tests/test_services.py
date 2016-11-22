@@ -15,16 +15,18 @@ from .services import BasicWindowsService, BasicWindowsAsyncioService, \
                       ConnectingWindowsAsyncioService, ReConnectingWindowsAsyncioService, \
                       WindowsWAMPService, EnvConfiguredReConnectingWindowsAsyncioService
 
-logging.basicConfig()
+#logging.basicConfig()
 
-tested_services = (BasicWindowsService, BasicWindowsAsyncioService, \
-                   ConnectingWindowsAsyncioService, ReConnectingWindowsAsyncioService, \
-                   WindowsWAMPService,)
+tested_services = (BasicWindowsAsyncioService,)
 
-event_logger = logging.getLogger("PythonService")
-event_logger.setLevel(logging.DEBUG)
-event_logger.addHandler(NTEventLogHandler("PythonService"))
-sys.excepthook = functools.partial(log_exception, event_logger)
+#tested_services = (BasicWindowsService, BasicWindowsAsyncioService,)# \
+#                   ConnectingWindowsAsyncioService, ReConnectingWindowsAsyncioService, \
+#                   WindowsWAMPService,)
+
+#event_logger = logging.getLogger("PythonService")
+#event_logger.setLevel(logging.DEBUG)
+#event_logger.addHandler(NTEventLogHandler("PythonService"))
+#sys.excepthook = functools.partial(log_exception, event_logger)
 
 
 @fixture(scope="module", params=tested_services)
