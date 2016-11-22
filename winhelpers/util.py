@@ -1,6 +1,6 @@
-import sys, re, logging
+import sys, os, re, logging, tempfile
+from logging import FileHandler
 from logging.handlers import NTEventLogHandler
-
 
 # Windows servicemanager eats exceptions, so need some extra logging magic...
 
@@ -10,9 +10,6 @@ def log_exception(exception_logger, exctype, value, tb):
 
 # Utilities for service creation
 
-def set_logger(name, dct):
-   dct["logger"] = get_windows_logger(name=name)
-   return dct
 
 def ccc(name): # Camel Case Converter
    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', name)
@@ -39,13 +36,16 @@ def servicemetadataprovider(cls):
 
 def eventloggerprovider(cls):
    "create new logger using class name"
-
    logger = logging.getLogger(cls.__name__)
    level = getattr(cls, "LOGLEVEL", logging.DEBUG)
    logger.setLevel(level)
 
    if sys.platform == "win32":
       logger.addHandler(NTEventLogHandler(cls.__name__))
+
+   if os.environ.get("EVENTLOGGER_FILE"):
+      tempdir = tempfile.gettempdir()
+      logger.addHandler(FileHandler(tempdir + os.sep + "testing.log"))
 
    cls._logger = logger
    return cls
