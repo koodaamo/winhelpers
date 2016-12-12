@@ -1,4 +1,4 @@
-import sys, os, re, logging, tempfile
+import sys, os, re, logging, tempfile #, struct
 from logging import FileHandler
 from logging.handlers import NTEventLogHandler
 
@@ -8,8 +8,15 @@ def log_exception(exception_logger, exctype, value, tb):
    exception_logger.error("%s (%s): %s" % (exctype, value, tb))
 
 
-# Utilities for service creation
+# bitness utilities
 
+#def is32bit_py():
+#   return True if print struct.calcsize("P") * 8 == 32 else False
+
+#def is64bit_os():
+#   return 'PROGRAMFILES(X86)' in os.environ
+
+# Utilities for service creation
 
 def ccc(name): # Camel Case Converter
    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', name)
