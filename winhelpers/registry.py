@@ -1,8 +1,12 @@
-import platform
 import winreg
+import win32process
+#from .util import is32bit_py, is64bit_os
 
-bitness = platform.architecture()[0]
-bflag = winreg.KEY_WOW64_32KEY if bitness == "32bit" else winreg.KEY_WOW64_64KEY
+# Windows registry access is foobar when 32bit programs run on 64bit OS
+wow64 = win32process.IsWow64Process()
+rflag = (winreg.KEY_READ | winreg.KEY_WOW64_64KEY) if wow64 else winreg.KEY_READ
+wflag =  winreg.KEY_WRITE | winreg.KEY_SET_VALUE
+wflag = (wflag | winreg.KEY_WOW64_64KEY) if wow64 else wflag
 
 KEY = winreg.HKEY_LOCAL_MACHINE
 GUIDPATH = u"SOFTWARE\Microsoft\Cryptography"
@@ -10,13 +14,11 @@ GUIDNAME = u"MachineGuid"
 
 
 def get_registry_setting(rpath, name):
-   rflag = winreg.KEY_READ | bflag
    reg = winreg.OpenKey(KEY, rpath, access=rflag)
    return winreg.QueryValueEx(reg, name)
 
 
 def get_registry_settings(rpath):
-   rflag = winreg.KEY_READ | bflag
    reg = winreg.OpenKey(KEY, rpath, access=rflag)
    count = winreg.QueryInfoKey(reg)[1]
    settings = {}
@@ -27,7 +29,6 @@ def get_registry_settings(rpath):
 
 
 def store_to_registry(data, rkey, rpath):
-   wflag =  winreg.KEY_WRITE | winreg.KEY_SET_VALUE | bflag
    try:
       reg = winreg.OpenKey(rkey, rpath, access=wflag)
    except EnvironmentError:
