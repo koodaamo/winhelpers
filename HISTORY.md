@@ -1,3 +1,9 @@
+1.8 (2016-12-12)
+-----------------
+
+- Add registry utilities support for 64-bit OS versions Windows by supporting
+registry OS 'bitness' (32/64) -dependent 'views'
+
 1.7 (2016-10-05)
 -----------------
 
