@@ -29,10 +29,9 @@ def get_registry_settings(rpath):
 
 
 def store_to_registry(data, rkey, rpath):
-   try:
-      reg = winreg.OpenKey(rkey, rpath, access=wflag)
-   except EnvironmentError:
-      reg = winreg.CreateKey(rkey, rpath)
+
+   # open existing or create new key
+   reg = winreg.CreateKeyEx(rkey, rpath, access=wflag)
 
    for dk, dv in data.items():
       if type(dv) == str:
