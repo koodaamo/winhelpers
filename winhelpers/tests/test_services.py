@@ -1,88 +1,44 @@
 import sys, time, logging, functools
 from logging.handlers import NTEventLogHandler
 
-from pytest import raises, fixture
+from pytest import raises, fixture, mark
 import win32service, win32serviceutil, servicemanager, pywintypes
 
-from asynciohelpers.abcs import ServiceBaseABC, WAMPServiceABC
-from asynciohelpers.util import provides_abc
-from asynciohelpers.testing import NotImplementedABC
-
-from ..abcs import WindowsServiceMetadata, ControlledWindowsService
+from ..abcs import WindowsServiceABC
 from ..service import WindowsServiceBase
-from ..util import log_exception
-from .services import BasicWindowsService, BasicWindowsAsyncioService, \
-                      ConnectingWindowsAsyncioService, ReConnectingWindowsAsyncioService, \
-                      WindowsWAMPService, EnvConfiguredReConnectingWindowsAsyncioService
+from ..util import log_exception, servicemetadataprovider, eventloggerprovider
 
-#logging.basicConfig()
+from .fixtures import installed
 
-tested_services = (BasicWindowsAsyncioService,)
+logging.basicConfig()
+event_logger = logging.getLogger("PythonService")
+event_logger.setLevel(logging.DEBUG)
+event_logger.addHandler(NTEventLogHandler("PythonService"))
+sys.excepthook = functools.partial(log_exception, event_logger)
 
-#tested_services = (BasicWindowsService, BasicWindowsAsyncioService,)# \
-#                   ConnectingWindowsAsyncioService, ReConnectingWindowsAsyncioService, \
-#                   WindowsWAMPService,)
+#
+# Define a dummy service to test
+#
 
-#event_logger = logging.getLogger("PythonService")
-#event_logger.setLevel(logging.DEBUG)
-#event_logger.addHandler(NTEventLogHandler("PythonService"))
-#sys.excepthook = functools.partial(log_exception, event_logger)
-
-
-@fixture(scope="module", params=tested_services)
-def servicefactory(request):
-   klass = request.param
-   bases = list(klass.__bases__)
-   if WindowsServiceBase not in bases:
-      bases.append(0, WindowsServiceBase)
-      klass.__bases__ = tuple(bases)
-   yield klass
-   return
+@eventloggerprovider
+@servicemetadataprovider
+class BasicWindowsService(WindowsServiceBase):
+   "service that does basically nothing"
 
 
-@fixture(scope="function", params=tested_services)
-def installed(request):
-   srv_klass = request.param
+@mark.parametrize('serviceklass', (BasicWindowsService,))
+def test_01_install_remove(serviceklass):
    sys.argv = sys.argv[:1] + ["install"]
-   win32serviceutil.HandleCommandLine(srv_klass)
-   while True:
-      try:
-         status_code = win32serviceutil.QueryServiceStatus(srv_klass._svc_name_)[1]
-         break
-      except:
-         pass
-   yield srv_klass
-   while True:
-      status_code = win32serviceutil.QueryServiceStatus(srv_klass._svc_name_)[1]
-      if status_code == win32service.SERVICE_STOPPED:
-         break
-   sys.argv = sys.argv[:1] + ["remove"]
-   win32serviceutil.HandleCommandLine(srv_klass)
-
-
-def test_00_validate(servicefactory):
-   assert provides_abc(servicefactory, WindowsServiceMetadata)
-   assert provides_abc(servicefactory, ControlledWindowsService)
-   assert not provides_abc(servicefactory, NotImplementedABC)
-
-   if servicefactory in (ConnectingWindowsAsyncioService, ReConnectingWindowsAsyncioService, WindowsWAMPService):
-      assert provides_abc(servicefactory, ServiceBaseABC)
-
-   if servicefactory == WindowsWAMPService:
-      assert provides_abc(servicefactory, WAMPServiceABC)
-
-
-def test_01_install_remove(servicefactory):
-   sys.argv = sys.argv[:1] + ["install"]
-   win32serviceutil.HandleCommandLine(servicefactory)
-   status_code = win32serviceutil.QueryServiceStatus(servicefactory._svc_name_)[1]
+   win32serviceutil.HandleCommandLine(serviceklass)
+   status_code = win32serviceutil.QueryServiceStatus(serviceklass._svc_name_)[1]
    assert status_code ==  win32service.SERVICE_STOPPED
    sys.argv = sys.argv[:1] + ["remove"]
-   win32serviceutil.HandleCommandLine(servicefactory)
+   win32serviceutil.HandleCommandLine(serviceklass)
    with raises(pywintypes.error):
-      status_code = win32serviceutil.QueryServiceStatus(servicefactory._svc_name_)[1]
+      status_code = win32serviceutil.QueryServiceStatus(serviceklass._svc_name_)[1]
 
 
+@mark.parametrize('installed', (BasicWindowsService,))
 def test_02_start_stop(installed):
    sys.argv = sys.argv[:1] + ["start"]
    servicemanager.LogInfoMsg("trying to start %s" % str(installed))

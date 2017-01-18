@@ -23,6 +23,6 @@ setup(name='winhelpers',
       include_package_data=True,
       zip_safe=False,
       setup_requires=['pytest-runner',],
-      tests_require=['pytest', 'pytest-logging', 'pytest-asyncio'],
-      install_requires=["asynciohelpers", "pypiwin32"],
+      tests_require=['pytest', 'pytest-logging'],
+      install_requires=["pypiwin32"],
       )
