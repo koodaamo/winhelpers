@@ -47,6 +47,7 @@ class WindowsServiceBase(win32serviceutil.ServiceFramework):
    def __init__(self, args):
       win32serviceutil.ServiceFramework.__init__(self, args)
       self._stop_event = win32event.CreateEvent(None, 0, 0, None)
+      self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
 
    def start(self):
       servicemanager.LogWarningMsg("the start method should be overriden")
@@ -59,7 +60,7 @@ class WindowsServiceBase(win32serviceutil.ServiceFramework):
 
    def SvcDoRun(self):
       "service controller is telling us to start"
-      self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
+      self.ReportServiceStatus(win32service.SERVICE_RUNNING)
       self.start()
 
    def SvcStop(self):
