@@ -1,10 +1,9 @@
 import sys, time, logging, functools
 from logging.handlers import NTEventLogHandler
 
-from pytest import raises, fixture, mark
-import win32service, win32serviceutil, servicemanager, pywintypes
+from pytest import raises, mark
+import win32service, win32serviceutil, pywintypes
 
-from ..abcs import WindowsServiceABC
 from ..service import WindowsServiceBase
 from ..util import log_exception, servicemetadataprovider, eventloggerprovider
 
@@ -26,7 +25,10 @@ class BasicWindowsService(WindowsServiceBase):
    "service that does basically nothing"
 
 
-@mark.parametrize('serviceklass', (BasicWindowsService,))
+tested_services = (BasicWindowsService,)
+
+
+@mark.parametrize('serviceklass', tested_services)
 def test_01_install_remove(serviceklass):
    sys.argv = sys.argv[:1] + ["install"]
    win32serviceutil.HandleCommandLine(serviceklass)
@@ -38,12 +40,13 @@ def test_01_install_remove(serviceklass):
       status_code = win32serviceutil.QueryServiceStatus(serviceklass._svc_name_)[1]
 
 
-@mark.parametrize('installed', (BasicWindowsService,))
+@mark.parametrize("srv_klass", tested_services)
 def test_02_start_stop(installed):
-   sys.argv = sys.argv[:1] + ["start"]
-   servicemanager.LogInfoMsg("trying to start %s" % str(installed))
-   win32serviceutil.HandleCommandLine(installed)
 
+   status_code = win32serviceutil.QueryServiceStatus(installed._svc_name_)[1]
+   assert status_code ==  win32service.SERVICE_STOPPED
+   sys.argv = sys.argv[:1] + ["start"]
+   win32serviceutil.HandleCommandLine(installed)
    pending_stat = win32serviceutil.QueryServiceStatus(installed._svc_name_)[1]
    assert pending_stat == win32service.SERVICE_START_PENDING
 
@@ -56,5 +59,3 @@ def test_02_start_stop(installed):
 
    sys.argv = sys.argv[:1] + ["stop"]
    win32serviceutil.HandleCommandLine(installed)
-
-
