@@ -1,5 +1,5 @@
 
-1.9 (2017-01-23)
+1.9rc0 (2017-01-23)
 -----------------
 
 - Rename & reduction in scope; just provide service helpers
