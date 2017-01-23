@@ -3,9 +3,9 @@ import sys, os
 
 version = '1.8rc2'
 
-setup(name='winhelpers',
+setup(name='winsrv',
       version=version,
-      description="Helpers for Python on the Windows platform",
+      description="Easy Windows Service creation and management",
       long_description="",
       classifiers=[
          "Operating System :: Microsoft :: Windows",
@@ -24,5 +24,5 @@ setup(name='winhelpers',
       zip_safe=False,
       setup_requires=['pytest-runner',],
       tests_require=['pytest', 'pytest-logging'],
-      install_requires=["pypiwin32"],
+      install_requires=["pywin32"],
       )

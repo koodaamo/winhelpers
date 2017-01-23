@@ -1,20 +1,13 @@
-import sys, os, re, logging, tempfile #, struct
+import sys, os, re, logging, tempfile
 from logging import FileHandler
 from logging.handlers import NTEventLogHandler
+
 
 # Windows servicemanager eats exceptions, so need some extra logging magic...
 
 def log_exception(exception_logger, exctype, value, tb):
    exception_logger.error("%s (%s): %s" % (exctype, value, tb))
 
-
-# bitness utilities
-
-#def is32bit_py():
-#   return True if print struct.calcsize("P") * 8 == 32 else False
-
-#def is64bit_os():
-#   return 'PROGRAMFILES(X86)' in os.environ
 
 # Utilities for service creation
 
