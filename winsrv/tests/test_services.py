@@ -1,12 +1,15 @@
 import sys, time, logging, functools
 from logging.handlers import NTEventLogHandler
 
-from pytest import raises, mark
+from pytest import raises, mark, fail
 import win32service, win32serviceutil, pywintypes
 
-from ..service import WindowsServiceBase, MinimalService, ServiceControls
-from ..util import log_exception, servicemetadataprovider, eventloggerprovider
+from win32service import SERVICE_RUNNING, SERVICE_START_PENDING, SERVICE_STOPPED
+from win32serviceutil import QueryServiceStatus, WaitForServiceStatus
 
+from ..service import WindowsServiceBase, ServiceControls
+from ..util import log_exception, servicemetadataprovider, eventloggerprovider
+from ..abcs import WindowsServiceABC
 from .fixtures import installed
 
 logging.basicConfig()
@@ -21,49 +24,35 @@ sys.excepthook = functools.partial(log_exception, event_logger)
 
 @eventloggerprovider
 @servicemetadataprovider
-class BasicWindowsService(WindowsServiceBase, ServiceControls):
-   "service that does basically nothing"
+class BasicWindowsService(WindowsServiceBase, ServiceControls, WindowsServiceABC):
+   "test service that is capable of being managed but does nothing else"
 
 
 tested_services = (BasicWindowsService,)
 
 
 @mark.parametrize('serviceklass', tested_services)
-def test_00_new_install_remove(serviceklass):
-   serviceklass.service_install()
-   time.sleep(2)
-   serviceklass.service_remove()
-
-
-@mark.parametrize('serviceklass', tested_services)
 def test_01_install_remove(serviceklass):
-   sys.argv = sys.argv[:1] + ["install"]
-   win32serviceutil.HandleCommandLine(serviceklass)
-   status_code = win32serviceutil.QueryServiceStatus(serviceklass._svc_name_)[1]
-   assert status_code ==  win32service.SERVICE_STOPPED
-   sys.argv = sys.argv[:1] + ["remove"]
-   win32serviceutil.HandleCommandLine(serviceklass)
+
+   serviceklass.install_service()
+
+   # check that service is installed
+   assert QueryServiceStatus(serviceklass._svc_name_)[1] == SERVICE_STOPPED
+
+   serviceklass.remove_service()
+
+   # check that service is not installed any more
    with raises(pywintypes.error):
-      status_code = win32serviceutil.QueryServiceStatus(serviceklass._svc_name_)[1]
+      status = QueryServiceStatus(serviceklass._svc_name_)
 
 
 @mark.parametrize("srv_klass", tested_services)
 def test_02_start_stop(installed):
 
-   status_code = win32serviceutil.QueryServiceStatus(installed._svc_name_)[1]
-   assert status_code ==  win32service.SERVICE_STOPPED
-   sys.argv = sys.argv[:1] + ["start"]
-   win32serviceutil.HandleCommandLine(installed)
-   pending_stat = win32serviceutil.QueryServiceStatus(installed._svc_name_)[1]
-   assert pending_stat == win32service.SERVICE_START_PENDING
+   assert QueryServiceStatus(installed._svc_name_)[1] == SERVICE_STOPPED
 
-   while True:
-      status_code = win32serviceutil.QueryServiceStatus(installed._svc_name_)[1]
-      if status_code == win32service.SERVICE_RUNNING:
-         time.sleep(3)
-         break
-      assert status_code != win32service.SERVICE_STOPPED, "service did not start"
+   installed.start_service(wait=3)
+   assert QueryServiceStatus(installed._svc_name_)[1] == SERVICE_RUNNING
 
-   sys.argv = sys.argv[:1] + ["stop"]
-   win32serviceutil.HandleCommandLine(installed)
-
+   installed.stop_service(wait=3)
+   assert QueryServiceStatus(installed._svc_name_)[1] == SERVICE_STOPPED
