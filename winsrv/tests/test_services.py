@@ -4,7 +4,7 @@ from logging.handlers import NTEventLogHandler
 from pytest import raises, mark
 import win32service, win32serviceutil, pywintypes
 
-from ..service import WindowsServiceBase
+from ..service import WindowsServiceBase, MinimalService, ServiceControls
 from ..util import log_exception, servicemetadataprovider, eventloggerprovider
 
 from .fixtures import installed
@@ -21,11 +21,18 @@ sys.excepthook = functools.partial(log_exception, event_logger)
 
 @eventloggerprovider
 @servicemetadataprovider
-class BasicWindowsService(WindowsServiceBase):
+class BasicWindowsService(WindowsServiceBase, ServiceControls):
    "service that does basically nothing"
 
 
 tested_services = (BasicWindowsService,)
+
+
+@mark.parametrize('serviceklass', tested_services)
+def test_00_new_install_remove(serviceklass):
+   serviceklass.service_install()
+   time.sleep(2)
+   serviceklass.service_remove()
 
 
 @mark.parametrize('serviceklass', tested_services)
@@ -59,3 +66,4 @@ def test_02_start_stop(installed):
 
    sys.argv = sys.argv[:1] + ["stop"]
    win32serviceutil.HandleCommandLine(installed)
+
