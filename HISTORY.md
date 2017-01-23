@@ -1,4 +1,11 @@
 
+
+1.9rc2 (2017-01-23)
+-----------------
+
+- Fix broken service start (why is subclassing from ABC causing it)
+- Simplfy service install fixture (use the new service controls)
+
 1.9rc1 (2017-01-23)
 -----------------
 
