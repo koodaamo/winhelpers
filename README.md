@@ -1,6 +1,3 @@
-# winhelpers
+# winsrv
 
-Miscellaneous helpers to make life easier on the Windows platform.
-
-- registry utilities
-- base classes for Windows services
+Easy-to-use base class and mixin for Windows Service creation and management.
