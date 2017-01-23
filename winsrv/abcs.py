@@ -1,3 +1,7 @@
+"""
+A service implementation should (at minimum) meet the requirements set here.
+"""
+
 from abc import abstractmethod, abstractproperty, ABCMeta
 
 
@@ -30,4 +34,4 @@ class WindowsServiceControl(metaclass=ABCMeta):
 
 
 class WindowsServiceABC(WindowsServiceMetadata, WindowsServiceControl):
-   ""
+   "a convenience ABC for service implementations"
