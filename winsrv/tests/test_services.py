@@ -24,29 +24,29 @@ sys.excepthook = functools.partial(log_exception, event_logger)
 
 @eventloggerprovider
 @servicemetadataprovider
-class BasicWindowsService(WindowsServiceBase, ServiceControls, WindowsServiceABC):
+class BasicWindowsService(WindowsServiceBase, ServiceControls):
    "test service that is capable of being managed but does nothing else"
 
 
 tested_services = (BasicWindowsService,)
 
 
-@mark.parametrize('serviceklass', tested_services)
-def test_01_install_remove(serviceklass):
+@mark.parametrize('service', tested_services)
+def test_01_install_remove(service):
 
-   serviceklass.install_service()
+   service.install_service()
 
    # check that service is installed
-   assert QueryServiceStatus(serviceklass._svc_name_)[1] == SERVICE_STOPPED
+   assert QueryServiceStatus(service._svc_name_)[1] == SERVICE_STOPPED
 
-   serviceklass.remove_service()
+   service.remove_service()
 
    # check that service is not installed any more
    with raises(pywintypes.error):
-      status = QueryServiceStatus(serviceklass._svc_name_)
+      status = QueryServiceStatus(service._svc_name_)
 
 
-@mark.parametrize("srv_klass", tested_services)
+@mark.parametrize("service", tested_services)
 def test_02_start_stop(installed):
 
    assert QueryServiceStatus(installed._svc_name_)[1] == SERVICE_STOPPED
