@@ -14,34 +14,9 @@ from win32service import SERVICE_START_PENDING, \
 
 from win32serviceutil import ServiceFramework, StartService, StopService, WaitForServiceStatus, \
                              StopServiceWithDeps, GetServiceClassString, \
-                             RemoveService, InstallService
+                             RemoveService, InstallService, QueryServiceStatus
 
 from .util import servicemetadataprovider, eventloggerprovider
-
-
-# Basic dummy service for reference; note that the servicemanager apparently runs the
-# service in a separate thread yet calls the functions in main, so don't count on
-# execution being intuitive...
-
-@eventloggerprovider
-@servicemetadataprovider
-class MinimalService(ServiceFramework):
-
-   def __init__(self,args):
-      ServiceFramework.__init__(self, args)
-      self.ReportServiceStatus(SERVICE_START_PENDING, waitHint=60000)
-      self._stop_event = win32event.CreateEvent(None, 0, 0, None)
-
-   def SvcStop(self):
-      self._logger.info("stopping")
-      self.ReportServiceStatus(SERVICE_STOP_PENDING)
-      win32event.SetEvent(self._stop_event)
-
-   def SvcDoRun(self):
-      self._logger.info("starting")
-      self.ReportServiceStatus(SERVICE_RUNNING)
-      win32event.WaitForSingleObject(self._stop_event, win32event.INFINITE)
-      self.ReportServiceStatus(SERVICE_STOPPED)
 
 
 # Service base class
@@ -64,7 +39,6 @@ class WindowsServiceBase(ServiceFramework):
 
    def SvcDoRun(self):
       "service controller is telling us to start"
-      self.ReportServiceStatus(win32service.SERVICE_RUNNING)
       self.start()
 
    def SvcStop(self):
@@ -98,17 +72,15 @@ class ServiceControls:
          RemoveService(klass._svc_name_)
       except win32service.error as exc:
          klass._logger.error("Cannot remove: %s (%d)" % (exc.strerror, exc.winerror))
-         err = exc.winerror
 
    @classmethod
    def start_service(klass, wait=0):
       try:
          StartService(klass._svc_name_)
          if wait:
-            WaitForServiceStatus(_svc_name_, SERVICE_RUNNING, wait)
+            WaitForServiceStatus(klass._svc_name_, SERVICE_RUNNING, wait)
       except win32service.error as exc:
          klass._logger.error("Cannot start: %s" % exc.strerror)
-         err = exc.winerror
 
    @classmethod
    def stop_service(klass, wait=0):
@@ -119,7 +91,6 @@ class ServiceControls:
             StopService(klass._svc_name_)
       except win32service.error as exc:
          klass._logger.error("Service stop error: %s (%d)" % (exc.strerror, exc.winerror))
-         err = exc.winerror
 
 
 
