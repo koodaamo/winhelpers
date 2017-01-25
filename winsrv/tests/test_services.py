@@ -5,7 +5,7 @@ from pytest import raises, mark, fail
 import win32service, win32serviceutil, pywintypes
 
 from win32service import SERVICE_RUNNING, SERVICE_START_PENDING, SERVICE_STOPPED
-from win32serviceutil import QueryServiceStatus, WaitForServiceStatus
+from win32serviceutil import QueryServiceStatus
 
 from ..service import WindowsServiceBase, ServiceControls
 from ..util import log_exception, servicemetadataprovider, eventloggerprovider
