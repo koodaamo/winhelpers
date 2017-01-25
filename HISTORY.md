@@ -1,4 +1,9 @@
 
+1.9rc3 (2017-01-24)
+-------------------
+
+- Add some service test utilities
+- Cleanup
 
 1.9rc2 (2017-01-23)
 -----------------
