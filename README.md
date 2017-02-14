@@ -6,7 +6,8 @@ helpful class decorators.
 
 For usage example, see tests/test_service.py
 
-Known to work on Windows 7. Usage reports on Windows 8 & 10 welcome.
+Tests pass at least on Windows 7 and Windows 10. Usage reports on other 
+modern Windows OSes welcome.
 
 When submitting issues, please first run "pytest" and attach results from
 failing tests.
