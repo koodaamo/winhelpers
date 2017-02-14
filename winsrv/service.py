@@ -1,11 +1,8 @@
-import sys, logging, re, threading
-from logging.handlers import NTEventLogHandler
 import win32serviceutil
 import win32event
 import win32service
 import servicemanager
 import winerror
-import win32api
 
 from win32service import SERVICE_START_PENDING, \
                          SERVICE_RUNNING, \
@@ -14,14 +11,15 @@ from win32service import SERVICE_START_PENDING, \
 
 from win32serviceutil import ServiceFramework, StartService, StopService, WaitForServiceStatus, \
                              StopServiceWithDeps, GetServiceClassString, \
-                             RemoveService, InstallService, QueryServiceStatus
+                             RemoveService, InstallService
 
 from .util import servicemetadataprovider, eventloggerprovider
 
 
-# Service base class
+# Service base class; note that the subclass needs to provide the service metadata
 
 class WindowsServiceBase(ServiceFramework):
+   "base class for implementing Windows services using pywin32"
 
    def __init__(self, args):
       win32serviceutil.ServiceFramework.__init__(self, args)

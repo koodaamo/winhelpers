@@ -1,12 +1,13 @@
 """
-A service implementation should (at minimum) meet the requirements set here.
+A service implementation should (at minimum) meet the requirements set here. Following
+the API below makes it easy to create a Windows service.
 """
 
 from abc import abstractmethod, abstractproperty, ABCMeta
 
 
 class WindowsServiceMetadata(metaclass=ABCMeta):
-   "Windows service metadata"
+   "Required service metadata used by Windows service manager"
 
    @abstractproperty
    def _svc_name_(self):
@@ -22,7 +23,7 @@ class WindowsServiceMetadata(metaclass=ABCMeta):
 
 
 class WindowsServiceControl(metaclass=ABCMeta):
-   "Windows service control API"
+   "Required methods used by Windows service manager to start & stop the service"
 
    @abstractmethod
    def SvcDoRun(self):
