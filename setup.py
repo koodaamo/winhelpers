@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.9rc3'
+version = '1.9'
 
 setup(name='winsrv',
       version=version,
